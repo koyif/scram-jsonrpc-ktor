@@ -1,0 +1,73 @@
+POST http://localhost:8080
+Content-Type: application/json
+
+{
+    "method": "AuthService.getSaltByUsername",
+    "params": ["user"],
+    "id": 1,
+    "jsonrpc": "2.0"
+}
+###
+POST http://localhost:8080
+Content-Type: application/json
+
+{
+  "method": "AuthService.getSaltByUsername",
+  "params": [1],
+  "id": 1,
+  "jsonrpc": "2.0"
+}
+
+> {%
+client.test("Inappropriate parameter", function() {
+    client.assert("Invalid params" === response.body.error.message, "Invalid params");
+});
+%}
+###
+POST http://localhost:8080
+Content-Type: application/json
+
+{
+  "method": "AuthService.getSaltByUsername",
+  "params": 1,
+  "id": 1,
+  "jsonrpc": "2.0"
+}
+
+> {%
+client.test("Parse error", function() {
+    client.assert("Parse error." === response.body.error.message);
+});
+%}
+###
+POST http://localhost:8080
+Content-Type: application/json
+
+{
+  "method": "AuthService.notExistedMethod",
+  "params": ["username"],
+  "id": 1,
+  "jsonrpc": "2.0"
+}
+
+> {%
+client.test("Procedure not found", function() {
+    client.assert("Procedure not found." === response.body.error.message);
+});
+%}
+###
+POST http://localhost:8080
+Content-Type: application/json
+
+{
+  "params": ["username"],
+  "id": 1
+}
+
+> {%
+client.test("Not JSON-RPC 2.0", function() {
+    client.assert("Invalid JSON-RPC." === response.body.error.message);
+});
+%}
+###
+
