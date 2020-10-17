@@ -19,21 +19,21 @@ object DatabaseConfiguration {
         TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
         transaction {
             create(Users)
-            Users.insert {
-                it[name] = "user"
-                it[salt] = "Fsalt"
-                it[storedKey] = "qstoredKey"
-                it[serverKey] = "zserverKey"
-                it[iteration] = 101
-                it[dateCreated] = 123
-            }
+//            Users.insert {
+//                it[name] = "user"
+//                it[salt] = "Fsalt"
+//                it[storedKey] = "qstoredKey"
+//                it[serverKey] = "zserverKey"
+//                it[iteration] = 101
+//                it[dateCreated] = 123
+//            }
         }
     }
 
     private fun hikari(): HikariDataSource {
         val config = HikariConfig()
         config.driverClassName = "org.sqlite.JDBC"
-        config.jdbcUrl = "jdbc:sqlite:file:test?mode=memory&cache=shared"
+        config.jdbcUrl = "jdbc:sqlite:file:scram.sqlite"
         config.maximumPoolSize = 3
         config.isAutoCommit = false
         config.transactionIsolation = "TRANSACTION_SERIALIZABLE"
