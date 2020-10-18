@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.koy.model.ddl.Users
@@ -19,14 +18,6 @@ object DatabaseConfiguration {
         TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
         transaction {
             create(Users)
-//            Users.insert {
-//                it[name] = "user"
-//                it[salt] = "Fsalt"
-//                it[storedKey] = "qstoredKey"
-//                it[serverKey] = "zserverKey"
-//                it[iteration] = 101
-//                it[dateCreated] = 123
-//            }
         }
     }
 

@@ -1,0 +1,52 @@
+POST http://localhost:8080
+Content-Type: application/json
+
+{
+    "method": "AuthService.registration",
+    "params": ["user", "pass"],
+    "id": 1,
+    "jsonrpc": "2.0"
+}
+###
+POST http://localhost:8080
+Content-Type: application/json
+
+{
+  "method": "AuthService.registration",
+  "params": ["user", "pass"],
+  "id": 1,
+  "jsonrpc": "2.0"
+}
+
+> {%
+client.test("User already exists", function() {
+    client.assert("User already exists" === response.body.error.message);
+});
+%}
+###
+POST http://localhost:8080
+Content-Type: application/json
+
+{
+  "method": "AuthService.getSaltByUsername",
+  "params": ["user", "random"],
+  "id": 1,
+  "jsonrpc": "2.0"
+}
+###
+POST http://localhost:8080
+Content-Type: application/json
+
+{
+  "method": "AuthService.getSaltByUsername",
+  "params": ["iDontKnowWhoItIs", "random"],
+  "id": 1,
+  "jsonrpc": "2.0"
+}
+
+> {%
+client.test("User not found", function() {
+    client.assert("User not found or blocked." === response.body.error.message);
+});
+%}
+###

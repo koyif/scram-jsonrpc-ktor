@@ -2,8 +2,7 @@ POST http://localhost:8080
 Content-Type: application/json
 
 {
-    "method": "AuthService.getSaltByUsername",
-    "params": ["user"],
+    "method": "HelloService.sayHello",
     "id": 1,
     "jsonrpc": "2.0"
 }
@@ -20,7 +19,7 @@ Content-Type: application/json
 
 > {%
 client.test("Inappropriate parameter", function() {
-    client.assert("Invalid params" === response.body.error.message, "Invalid params");
+    client.assert("Invalid params" === response.body.error.message);
 });
 %}
 ###

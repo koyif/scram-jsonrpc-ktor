@@ -3,9 +3,9 @@ package ru.koy.model.orm
 class User(
     val id: Int,
     val name: String,
-    val salt: String,
-    val storedKey: String,
-    val serverKey: String,
+    val salt: ByteArray,
+    val storedKey: ByteArray,
+    val serverKey: ByteArray,
     val iteration: Int,
-    val dateCreated: Long
+    val lastToken: String?
 )

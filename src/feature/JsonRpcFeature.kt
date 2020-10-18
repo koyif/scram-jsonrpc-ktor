@@ -48,6 +48,7 @@ class JsonRpcFeature(configuration: Configuration) {
 
         try {
             result = when (jsonRequest.method) {
+                "AuthService.registration" -> authService.registration(jsonRequest.params)
                 "AuthService.getSaltByUsername" -> authService.getSaltByUsername(jsonRequest.params)
                 "AuthService.authenticate" -> authService.authenticate(jsonRequest.params)
                 "HelloService.sayHello" -> helloService.sayHello()

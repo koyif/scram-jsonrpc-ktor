@@ -4,13 +4,12 @@ import org.jetbrains.exposed.sql.Table
 
 object Users : Table() {
     val id = integer("id").autoIncrement()
-    val name = varchar("name", 32)
-    val salt = varchar("salt", 64)
-    val storedKey = varchar("storedKey", 128)
-    val serverKey = varchar("serverKey", 128)
+    val name = varchar("name", 32).uniqueIndex()
+    val salt = binary("salt", 16)
+    val storedKey = binary("storedKey", 64)
+    val serverKey = binary("serverKey", 64)
     val iteration = integer("iteration")
-
-    val dateCreated = long("dateCreated")
+    val lastToken = varchar("lastToken", 48).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
