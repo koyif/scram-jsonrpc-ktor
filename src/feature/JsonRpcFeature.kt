@@ -21,9 +21,7 @@ class JsonRpcFeature(configuration: Configuration) {
     private val authService = AuthService(UserRepository())
     private val helloService = HelloService()
 
-    class Configuration {
-
-    }
+    class Configuration
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, JsonRpcFeature> {
         override val key = AttributeKey<JsonRpcFeature>("JsonRpcFeature")

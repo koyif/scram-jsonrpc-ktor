@@ -6,5 +6,4 @@ class UserAlreadyExistsException : RpcException() {
 
     override val message: String?
         get() = "User already exists"
-
 }

@@ -1,6 +1,6 @@
 package ru.koy.exception
 
-class UserNotFoundException: RpcException() {
+class UserNotFoundException : RpcException() {
     override val code: Int
         get() = -1101
 

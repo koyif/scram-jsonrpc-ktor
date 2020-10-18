@@ -16,6 +16,12 @@ class UserRepository {
             .singleOrNull()
     }
 
+    suspend fun getUserByToken(token: String): User? = dbQuery {
+        Users.select { (Users.lastToken eq token) }
+            .mapNotNull { toUser(it) }
+            .singleOrNull()
+    }
+
     suspend fun insertUser(userName: String, scramCredentials: ScramCredentials) = dbQuery {
         Users.insert {
             it[name] = userName

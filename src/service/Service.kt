@@ -1,5 +1,3 @@
 package ru.koy.service
 
-interface Service {
-
-}
+interface Service

@@ -3,6 +3,7 @@ package ru.koy.service.impl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import ru.koy.exception.InvalidParamsException
+import ru.koy.exception.NonceNotFoundException
 import ru.koy.exception.UserAlreadyExistsException
 import ru.koy.exception.UserNotFoundException
 import ru.koy.model.dto.SaltResponse
@@ -34,9 +35,31 @@ class AuthService(private val userRepository: UserRepository) : Service {
     }
 
     suspend fun authenticate(params: List<Any>?): String {
-//        this.checkParams(params, Double::class)
+        this.checkAuthenticateParams(params)
+        val user = userRepository.getUserByToken(params?.get(0) as String) ?: throw UserNotFoundException()
+        val clientNonce = user.lastToken?.substring(0..23) ?: throw NonceNotFoundException()
 
-        return "Success"
+        val authMessage = ScramUtil.getAuthMessage(
+            ScramUtil.getClientFirstMessage(user.name, clientNonce),
+            ScramUtil.getServerFirstMessage(user.lastToken, ScramUtil.toBase64(user.salt), user.iteration),
+            ScramUtil.getClientFinalMessageWithoutProof(user.lastToken)
+        )
+
+        val clientSignature = ScramUtil.clientSignature(user.storedKey, authMessage)
+        val storedKey = ScramUtil.getStoredKey(clientSignature, ScramUtil.fromBase64(params[1] as String))
+
+        val compare = String.format(
+            "Expected: %s, actual: %s",
+            ScramUtil.toBase64(user.storedKey), ScramUtil.toBase64(storedKey)
+        )
+
+        logger.debug("authenticate: {}", compare)
+
+        return if (storedKey.contentEquals(user.storedKey)) {
+            "Success"
+        } else {
+            "Fail"
+        }
     }
 
     suspend fun registration(params: List<Any>?): String {
@@ -62,6 +85,12 @@ class AuthService(private val userRepository: UserRepository) : Service {
     }
 
     private fun checkRegistrationParams(params: List<Any>?) {
+        if (params?.size != 2 || params.any { !String::class.isInstance(it) }) {
+            throw InvalidParamsException()
+        }
+    }
+
+    private fun checkAuthenticateParams(params: List<Any>?) {
         if (params?.size != 2 || params.any { !String::class.isInstance(it) }) {
             throw InvalidParamsException()
         }
