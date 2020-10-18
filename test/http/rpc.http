@@ -1,4 +1,4 @@
-POST http://localhost:8080
+POST http://localhost:8081
 Content-Type: application/json
 
 {
@@ -7,7 +7,7 @@ Content-Type: application/json
     "jsonrpc": "2.0"
 }
 ###
-POST http://localhost:8080
+POST http://localhost:8081
 Content-Type: application/json
 
 {
@@ -23,7 +23,7 @@ client.test("Inappropriate parameter", function() {
 });
 %}
 ###
-POST http://localhost:8080
+POST http://localhost:8081
 Content-Type: application/json
 
 {
@@ -39,7 +39,7 @@ client.test("Parse error", function() {
 });
 %}
 ###
-POST http://localhost:8080
+POST http://localhost:8081
 Content-Type: application/json
 
 {
@@ -55,7 +55,7 @@ client.test("Procedure not found", function() {
 });
 %}
 ###
-POST http://localhost:8080
+POST http://localhost:8081
 Content-Type: application/json
 
 {
