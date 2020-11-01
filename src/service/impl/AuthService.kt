@@ -9,7 +9,7 @@ import ru.koy.exception.UserNotFoundException
 import ru.koy.model.dto.SaltResponse
 import ru.koy.repository.UserRepository
 import ru.koy.service.Service
-import ru.koy.util.ScramUtil
+import ru.koy.util.*
 import java.time.LocalTime
 import kotlin.random.Random
 
@@ -23,12 +23,12 @@ class AuthService(private val userRepository: UserRepository) : Service {
         val userByName = userRepository
             .getUserByName(params?.first() as String) ?: throw UserNotFoundException()
 
-        val lastToken = params[1] as String + ScramUtil.toBase64(ScramUtil.generateSalt())
+        val lastToken = params[1] as String + toBase64(generateSalt())
 
         userRepository.updateLastToken(userByName.id, lastToken)
 
         return SaltResponse(
-            ScramUtil.toBase64(userByName.salt),
+            toBase64(userByName.salt),
             userByName.iteration,
             lastToken
         )
@@ -39,18 +39,18 @@ class AuthService(private val userRepository: UserRepository) : Service {
         val user = userRepository.getUserByToken(params?.get(0) as String) ?: throw UserNotFoundException()
         val clientNonce = user.lastToken?.substring(0..23) ?: throw NonceNotFoundException()
 
-        val authMessage = ScramUtil.getAuthMessage(
-            ScramUtil.getClientFirstMessage(user.name, clientNonce),
-            ScramUtil.getServerFirstMessage(user.lastToken, ScramUtil.toBase64(user.salt), user.iteration),
-            ScramUtil.getClientFinalMessageWithoutProof(user.lastToken)
+        val authMessage = getAuthMessage(
+            getClientFirstMessage(user.name, clientNonce),
+            getServerFirstMessage(user.lastToken, toBase64(user.salt), user.iteration),
+            getClientFinalMessageWithoutProof(user.lastToken)
         )
 
-        val clientSignature = ScramUtil.clientSignature(user.storedKey, authMessage)
-        val storedKey = ScramUtil.getStoredKey(clientSignature, ScramUtil.fromBase64(params[1] as String))
+        val clientSignature = clientSignature(user.storedKey!!, authMessage)
+        val storedKey = getStoredKey(clientSignature, fromBase64(params[1] as String))
 
         val compare = String.format(
             "Expected: %s, actual: %s",
-            ScramUtil.toBase64(user.storedKey), ScramUtil.toBase64(storedKey)
+            toBase64(user.storedKey), toBase64(storedKey)
         )
 
         logger.debug("authenticate: {}", compare)
@@ -62,20 +62,32 @@ class AuthService(private val userRepository: UserRepository) : Service {
         }
     }
 
-    suspend fun registration(params: List<Any>?): String {
+    suspend fun registration(params: List<Any>?): SaltResponse {
         this.checkRegistrationParams(params)
-        if (userRepository.checkUser(params?.get(0) as String)) {
+        val (username, clientToken) = params!![0] as String to params[1] as String
+
+        val userByName = userRepository.getUserByName(username)
+
+        if (userByName?.serverKey?.isNotEmpty() == true) {
             throw UserAlreadyExistsException()
         }
 
-        val credentials = ScramUtil.getScramCredentials(
-            params[1] as String,
-            Random(LocalTime.now().toNanoOfDay())
-                .nextInt(4096, 1048576)
-        )
+        val newSalt = generateSalt()
+        val newIterations = Random(LocalTime.now().toNanoOfDay())
+            .nextInt(4096, 131072)
+        val token = clientToken + toBase64(generateSalt())
 
-        userRepository.insertUser(params[0] as String, credentials)
-        return "Success"
+        if (userByName != null) {
+            userRepository.updateUser(userByName, newSalt, newIterations, token)
+        } else {
+            userRepository.insertUser(username, newSalt, newIterations, token)
+        }
+
+        return SaltResponse(
+            toBase64(newSalt),
+            newIterations,
+            token
+        )
     }
 
     private fun checkSaltParams(params: List<Any>?) {

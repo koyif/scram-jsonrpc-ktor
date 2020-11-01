@@ -1,11 +1,7 @@
 package ru.koy.repository
 
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.*
 import ru.koy.config.DatabaseConfiguration.dbQuery
-import ru.koy.model.ScramCredentials
 import ru.koy.model.ddl.Users
 import ru.koy.model.orm.User
 
@@ -17,23 +13,30 @@ class UserRepository {
     }
 
     suspend fun getUserByToken(token: String): User? = dbQuery {
-        Users.select { (Users.lastToken eq token) }
+        Users.select { Users.lastToken.eq(token) and Users.storedKey.isNotNull() }
             .mapNotNull { toUser(it) }
             .singleOrNull()
     }
 
-    suspend fun insertUser(userName: String, scramCredentials: ScramCredentials) = dbQuery {
+    suspend fun insertUser(userName: String, newSalt: ByteArray, i: Int, token: String) = dbQuery {
         Users.insert {
             it[name] = userName
-            it[salt] = scramCredentials.salt
-            it[storedKey] = scramCredentials.storedKey
-            it[serverKey] = scramCredentials.serverKey
-            it[iteration] = scramCredentials.iterations
+            it[salt] = newSalt
+            it[iteration] = i
+            it[lastToken] = token
         }
     }
 
-    suspend fun checkUser(userName: String): Boolean = dbQuery {
-        Users.select { (Users.name eq userName) }
+    suspend fun updateUser(userByName: User, newSalt: ByteArray, newIterations: Int, token: String) = dbQuery {
+        Users.update({ Users.id.eq(userByName.id) }) {
+            it[salt] = newSalt
+            it[iteration] = newIterations
+            it[lastToken] = token
+        }
+    }
+
+    suspend fun checkUserExists(userName: String): Boolean = dbQuery {
+        Users.select { Users.name.eq(userName) and Users.storedKey.isNotNull() }
             .any()
     }
 
